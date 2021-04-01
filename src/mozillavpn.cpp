@@ -21,6 +21,7 @@
 #include "tasks/function/taskfunction.h"
 #include "tasks/heartbeat/taskheartbeat.h"
 #include "tasks/removedevice/taskremovedevice.h"
+#include "tasks/surveydata/tasksurveydata.h"
 #include "urlopener.h"
 
 #ifdef MVPN_IOS
@@ -83,6 +84,7 @@ MozillaVPN::MozillaVPN() : m_private(new Private()) {
     scheduleTask(new TaskAccountAndServers());
     scheduleTask(new TaskCaptivePortalLookup());
     scheduleTask(new TaskHeartbeat());
+    scheduleTask(new TaskSurveyData());
   });
 
   connect(this, &MozillaVPN::stateChanged, [this]() {
@@ -206,7 +208,9 @@ void MozillaVPN::initialize() {
   }
 
   logger.log() << "We have a valid token";
+
   if (!m_private->m_user.fromSettings()) {
+    logger.log() << "No user data found";
     return;
   }
 
@@ -236,6 +240,10 @@ void MozillaVPN::initialize() {
 
   if (!m_private->m_captivePortal.fromSettings()) {
     // We do not care about CaptivePortal settings.
+  }
+
+  if (!m_private->m_surveyModel.fromSettings()) {
+    // We do not care about Survey settings.
   }
 
   if (!modelsInitialized()) {
@@ -652,6 +660,17 @@ void MozillaVPN::accountChecked(const QByteArray& json) {
 
   // To test the subscription needed view, comment out this line:
   // m_private->m_controller.subscriptionNeeded();
+}
+
+void MozillaVPN::surveyChecked(const QByteArray& json) {
+  logger.log() << "Survey checked";
+
+  if (!m_private->m_surveyModel.fromJson(json)) {
+    logger.log() << "Failed to parse the Survey JSON data";
+    return;
+  }
+
+  m_private->m_surveyModel.writeSettings();
 }
 
 void MozillaVPN::cancelAuthentication() {
