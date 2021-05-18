@@ -273,6 +273,11 @@ balrog {
     HEADERS += update/balrog.h
 }
 
+crashreport {
+    DEFINES += MVPN_CRASHREPORT
+    include(breakpad.pri)
+}
+
 DUMMY {
     message(Dummy build)
 

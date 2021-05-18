@@ -19,3 +19,9 @@
 	path = 3rdparty/wireguard-go
 	url = https://github.com/WireGuard/wireguard-go
         ignore=all
+[submodule "3rdparty/breakpad"]
+	path = 3rdparty/breakpad
+	url = https://chromium.googlesource.com/breakpad/breakpad
+[submodule "3rdparty/linux-syscall-support"]
+	path = 3rdparty/linux-syscall-support
+	url = https://chromium.googlesource.com/linux-syscall-support
