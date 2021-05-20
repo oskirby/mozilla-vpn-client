@@ -40,6 +40,9 @@ class SettingsHolder final : public QObject {
   Q_PROPERTY(
       QString userDNS READ userDNS WRITE setUserDNS NOTIFY userDNSChanged)
 
+  Q_PROPERTY(bool multihopTunnel READ multihopTunnel WRITE setMultihopTunnel
+                 NOTIFY multihopTunnelChanged)
+
  public:
   SettingsHolder();
   ~SettingsHolder();
@@ -104,6 +107,7 @@ class SettingsHolder final : public QObject {
          setServerSwitchNotification);
   GETSET(bool, hasConnectionChangeNotification, connectionChangeNotification,
          setConnectionChangeNotification);
+  GETSET(bool, hasMultihopTunnel, multihopTunnel, setMultihopTunnel)
 
   bool hasVpnDisabledApp(const QString& appID);
   void removeVpnDisabledApp(const QString& appID);
@@ -156,6 +160,7 @@ class SettingsHolder final : public QObject {
   void gleanEnabledChanged(bool value);
   void serverSwitchNotificationChanged(bool value);
   void connectionChangeNotificationChanged(bool value);
+  void multihopTunnelChanged(bool value);
 
  private:
   explicit SettingsHolder(QObject* parent);
