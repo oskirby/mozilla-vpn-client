@@ -48,7 +48,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      basetgz: "/var/cache/pbuilder/ubuntu-buildd-${{matrix.config.dist}}.tgz"
+      basetgz: "ubuntu-buildd-${{matrix.config.dist}}.tgz"
     steps:
       - name: Download Source Package
         uses: actions/download-artifact@v2
@@ -75,8 +75,8 @@ jobs:
           done
           echo "apt-get update" >> hooks/E01extradist
           chmod +x hooks/E01extradist
-          echo "DEBUGME!"
-          cat hooks/E01extradist
+          echo "DEBUGME! $GITHUB_ACTION_PATH"
+          ls $GITHUB_ACTION_PATH
 
           sudo apt-get install pbuilder debootstrap debhelper devscripts -y
           sudo pbuilder create --distribution ${{ matrix.config.dist }} --basetgz $basetgz --hookdir $(pwd)/hooks \
