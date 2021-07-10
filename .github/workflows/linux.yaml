@@ -24,17 +24,17 @@ jobs:
           GITREF: ${{github.ref}}
         run: |
           if [[ "$GITREF" == "refs/heads/main" ]]; then
-            echo "revision=~github${{github.run_number}}" >> $GITHUB_ENV
+            echo "REVISION=~github${{github.run_number}}" >> $GITHUB_ENV
           elif [[ "$GITREF" =~ ^refs/pull/([0-9]+)/merge ]]; then
-            echo "revision=~pull${BASH_REMATCH[1]}" >> $GITHUB_ENV
+            echo "REVISION=~pull${BASH_REMATCH[1]}" >> $GITHUB_ENV
           elif [[ "$GITREF" =~ ^refs/heads/releases/ ]]; then
             git fetch --unshallow
-            echo "revision=$(git rev-list --count --first-parent origin/main..HEAD)" >> $GITHUB_ENV
+            echo "REVISION=$(git rev-list --count --first-parent origin/main..HEAD)" >> $GITHUB_ENV
 
             FORCE_VERISON=$(echo "$GITREF" | cut -d'/' -f4)
             sed -i "s/:VERSION = /:VERSION = $FORCE_VERSION/" version.pri
           else
-            echo "revision=~unknown" >> $GITHUB_ENV
+            echo "REVISION=~unknown" >> $GITHUB_ENV
           fi
 
       - name: Install source dependencies
@@ -47,7 +47,7 @@ jobs:
       
       - name: Build source bundle
         shell: bash
-        run: ./scripts/linux_script.sh --source --version $revision
+        run: ./scripts/linux_script.sh --source --version $REVISION
       
       - name: Uploading
         uses: actions/upload-artifact@v2
