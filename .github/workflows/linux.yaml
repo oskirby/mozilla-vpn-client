@@ -30,7 +30,20 @@ jobs:
           echo github.workspace=${{github.workspace}}
           echo github.workflow=${{github.workflow}}
 
-      
+
+      - name: Generate release version
+        shell: bash
+        if: (github.event_name == 'push') && startsWith(github.ref, 'refs/heads/releases/')
+        run: |
+          git fetch --unshallow
+          echo "revision=$(git rev-list --count --first-parent origin/main..HEAD)" >> $GITHUB_ENV
+
+      - name: Generate development version
+        shell: bash
+        if: (github.event_name == 'push') && (github.ref == 'refs/head/main')
+        run: |
+          echo "revision=~github${{github.run_number}}" >> $GITHUB_ENV
+
       - name: Install source dependencies
         shell: bash
         run: |
@@ -41,7 +54,7 @@ jobs:
       
       - name: Build source bundle
         shell: bash
-        run: ./scripts/linux_script.sh --source
+        run: ./scripts/linux_script.sh --source --version $revision
       
       - name: Uploading
         uses: actions/upload-artifact@v2
