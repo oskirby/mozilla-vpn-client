@@ -3,11 +3,9 @@ on:
   push:
     branches:
       - main
-      - 'releases/**'
   pull_request:
     branches:
       - main
-      - 'releases/**'
 
 jobs:
   test_list:

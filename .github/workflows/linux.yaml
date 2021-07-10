@@ -17,6 +17,19 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
+
+      - name: Inspect environment
+        run: |
+          echo github.action=${{github.action}}
+          echo github.action_path=${{github.action_path}}
+          echo github.event=${{github.event}}
+          echo github.event_path=${{github.event_path}}
+          echo github.event_name=${{github.event_name}}
+          echo github.event_ref=${{github.event_ref}}
+          echo github.ref=${{github.ref}}
+          echo github.workspace=${{github.workspace}}
+          echo github.workflow=${{github.workflow}}
+
       
       - name: Install source dependencies
         shell: bash

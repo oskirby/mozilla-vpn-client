@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - 'releases/**'
     types: [ opened, synchronize, reopened ]
 jobs:
   fetch:
