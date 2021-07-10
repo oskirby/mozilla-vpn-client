@@ -62,7 +62,7 @@ printn Y "Computing the version... "
 SHORTVERSION=$(cat version.pri | grep VERSION | grep defined | cut -d= -f2 | tr -d \ )
 FULLVERSION=$(echo $SHORTVERSION | cut -d. -f1).$(date +"%Y%m%d%H%M")
 WORKDIR=mozillavpn-$SHORTVERSION
-print G "$SHORTVERSION - $FULLVERSION"
+print G "$SHORTVERSION - $REVISION - $FULLVERSION"
 
 rm -rf .tmp || die "Failed to remove the temporary directory"
 mkdir .tmp || die "Failed to create the temporary directory"

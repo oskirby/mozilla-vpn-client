@@ -25,11 +25,14 @@ jobs:
         run: |
           if [[ "$GITREF" == "refs/heads/main" ]]; then
             echo "revision=~github${{github.run_number}}" >> $GITHUB_ENV
-          elif [[ "$GITREF" =~ refs/pull/([0-9]+)/merge ]]; then
+          elif [[ "$GITREF" =~ ^refs/pull/([0-9]+)/merge ]]; then
             echo "revision=~pull${BASH_REMATCH[1]}" >> $GITHUB_ENV
-          elif [[ "$GITREF" =~ refs/heads/releases/(.*) ]]; then
+          elif [[ "$GITREF" =~ ^refs/heads/releases/ ]]; then
             git fetch --unshallow
             echo "revision=$(git rev-list --count --first-parent origin/main..HEAD)" >> $GITHUB_ENV
+
+            FORCE_VERISON=$(echo "$GITREF" | cut -d'/' -f4)
+            sed -i "s/:VERSION = /:VERSION = $FORCE_VERSION/" version.pri
           else
             echo "revision=~unknown" >> $GITHUB_ENV
           fi
