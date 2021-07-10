@@ -31,18 +31,24 @@ jobs:
           echo github.workflow=${{github.workflow}}
 
 
-      - name: Generate release version
+      - name: Generate build revesion
         shell: bash
-        if: (github.event_name == 'push') && startsWith(github.ref, 'refs/heads/releases/')
         run: |
-          git fetch --unshallow
-          echo "revision=$(git rev-list --count --first-parent origin/main..HEAD)" >> $GITHUB_ENV
-
-      - name: Generate development version
-        shell: bash
-        if: (github.event_name == 'push') && (github.ref == 'refs/head/main')
-        run: |
-          echo "revision=~github${{github.run_number}}" >> $GITHUB_ENV
+          case "${{github.ref}}" in
+            refs/heads/main)
+              echo "revision=~github${{github.run_number}}" >> $GITHUB_ENV
+              ;;
+            refs/pull/*)
+              echo "revision=~pull${{github.pull_request.number}}" >> $GITHUB_ENV
+              ;;
+            refs/heads/releases/*)
+              git fetch --unshallow --progress
+              echo "revision=$(git rev-list --count --first-parent origin/main..HEAD)" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "revision=~unknown" >> $GITHUB_ENV
+              ;;
+          esac
 
       - name: Install source dependencies
         shell: bash
