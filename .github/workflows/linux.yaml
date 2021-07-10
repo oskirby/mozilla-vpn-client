@@ -21,7 +21,7 @@ jobs:
       - name: Generate build revesion
         shell: bash
         env:
-          GITREF: ${{gittub.ref}}
+          GITREF: ${{github.ref}}
         run: |
           if [[ "$GITREF" == "refs/heads/main" ]]; then
             echo "revision=~github${{github.run_number}}" >> $GITHUB_ENV
