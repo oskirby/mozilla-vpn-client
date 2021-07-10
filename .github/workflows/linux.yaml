@@ -18,37 +18,20 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Inspect environment
-        run: |
-          echo github.action=${{github.action}}
-          echo github.action_path=${{github.action_path}}
-          echo github.event=${{github.event}}
-          echo github.event_path=${{github.event_path}}
-          echo github.event_name=${{github.event_name}}
-          echo github.event_ref=${{github.event_ref}}
-          echo github.ref=${{github.ref}}
-          echo github.workspace=${{github.workspace}}
-          echo github.workflow=${{github.workflow}}
-
-
       - name: Generate build revesion
         shell: bash
+        env: GITREF: ${{gittub.ref}}
         run: |
-          case "${{github.ref}}" in
-            refs/heads/main)
-              echo "revision=~github${{github.run_number}}" >> $GITHUB_ENV
-              ;;
-            refs/pull/*)
-              echo "revision=~pull${{github.pull_request.number}}" >> $GITHUB_ENV
-              ;;
-            refs/heads/releases/*)
-              git fetch --unshallow --progress
-              echo "revision=$(git rev-list --count --first-parent origin/main..HEAD)" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "revision=~unknown" >> $GITHUB_ENV
-              ;;
-          esac
+          if [[ "$GITREF" == "refs/heads/main" ]]; then
+            echo "revision=~github${{github.run_number}}" >> $GITHUB_ENV
+          elif [[ "$GITREF" =~ refs/pull/([0-9]+)/merge ]]; then
+            echo "revision=~pull${BASH_REMATCH[0]}"
+          elif [[ "$GITREF" =~ refs/heads/releases/(.*) ]]; then
+            git fetch --unshallow
+            echo "revision=$(git rev-list --count --first-parent origin/main..HEAD)" >> $GITHUB_ENV
+          else
+            echo "revision=~unknown" >> $GITHUB_ENV
+          fi
 
       - name: Install source dependencies
         shell: bash
