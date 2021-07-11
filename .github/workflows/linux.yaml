@@ -36,72 +36,6 @@ jobs:
             name: Sources
             path: .tmp
 
-  focal-staging:
-    name: Focal Staging
-    needs: source-bundle
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Download Source Package
-        uses: actions/download-artifact@v2
-        with:
-            name: Sources
-
-      - name: Install Dependencies
-        run: |
-          # Add external PPA, latest version of QT is 5.12.x for Ubuntu 20.04
-          sudo add-apt-repository ppa:beineri/opt-qt-5.15.2-focal -y
-          sudo apt-get install debhelper devscripts equivs -y
-
-          for file in $(find focal-stage -type f); do ln -s $file; done
-          dpkg-source -x mozillavpn_*.dsc
-          sudo mk-build-deps -ir mozillavpn-*/debian/control
-
-      - name: Create package structure
-        shell: bash
-        run: |
-          (cd mozillavpn-* && dpkg-buildpackage --build=binary --no-sign)
-          mkdir packages
-          cp *.deb packages
-
-      - name: Uploading
-        uses: actions/upload-artifact@v1
-        with:
-            name: Staging Build (focal)
-            path: packages
-
-  focal-production:
-    name: Focal Production
-    needs: source-bundle
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Download Source Package
-        uses: actions/download-artifact@v2
-        with:
-            name: Sources
-
-      - name: Install Dependencies
-        run: |
-          # Add external PPA, latest version of QT is 5.12.x for Ubuntu 20.04
-          sudo add-apt-repository ppa:beineri/opt-qt-5.15.2-focal -y
-          sudo apt-get install debhelper devscripts equivs -y
-
-          for file in $(find focal-prod -type f); do ln -s $file; done
-          dpkg-source -x mozillavpn_*.dsc
-          sudo mk-build-deps -ir mozillavpn-*/debian/control
-
-      - name: Create package structure
-        shell: bash
-        run: |
-          (cd mozillavpn-* && dpkg-buildpackage --build=binary --no-sign)
-          mkdir packages
-          cp *.deb packages
-
-      - name: Uploading
-        uses: actions/upload-artifact@v1
-        with:
-            name: Production Build (focal)
-            path: packages
-
   bionic-staging:
     name: Bionic Staging
     needs: source-bundle
@@ -168,14 +102,16 @@ jobs:
             name: Production Build (bionic)
             path: packages
 
-  ubuntu-hirsute:
-    name: Ubuntu packages
+  ubuntu-pbuilder:
+    name: Ubuntu Packages
     needs: source-bundle
     strategy:
       matrix:
         config:
-            - { name: "Hirsute Staging", dist: hirsute, buildtype: "stage" }
-            - { name: "Hirsute Production", dist: hirsute, buildtype: "prod" }
+            - { name: "Focal Staging", dist: focal, buildtype: stage, ppa: "ppa:beineri/opt-qt-5.15.2-focal" }
+            - { name: "Focal Production", dist: focal, buildtype: prod, ppa: "ppa:beineri/opt-qt-5.15.2-focal" }
+            - { name: "Hirsute Staging", dist: hirsute, buildtype: stage, ppa: "" }
+            - { name: "Hirsute Production", dist: hirsute, buildtype: prod, ppa: "" }
 
     runs-on: ubuntu-latest
     steps:
@@ -189,13 +125,21 @@ jobs:
           sudo apt-get install pbuilder debootstrap debhelper devscripts -y
           mkdir hooks
 
+          # Create a hook to install a PPA, if necessary.
+          if [ ! -z "${{matrix.config.ppa}}" ]; then
+            echo '#!/bin/sh' > hooks/E01ppa
+            echo "apt-get install software-properties-common -y" >> hooks/E01ppa
+            echo "add-apt-repository ${{matrix.config.ppa}} -y" >> hooks/E01ppa
+            chmod +x hooks/E01ppa
+          fi
+
           # Create a hook to pre-install build dependencies
           tar -xf ${{matrix.config.dist}}-${{matrix.config.buildtype}}/*.debian.tar.xz --strip-components=1 debian/control
           mv control hooks
-          echo '#!/bin/sh' >> hooks/E01builddeps
-          echo "apt-get install devscripts equivs -y" >> hooks/E01builddeps
-          echo "yes | mk-build-deps -ir \$(dirname \$0)/control" >> hooks/E01builddeps
-          chmod +x hooks/E01builddeps
+          echo '#!/bin/sh' >> hooks/E02builddeps
+          echo "apt-get install devscripts equivs -y" >> hooks/E02builddeps
+          echo "yes | mk-build-deps -ir \$(dirname \$0)/control" >> hooks/E02builddeps
+          chmod +x hooks/E02builddeps
 
       - name: Cache base ${{ matrix.config.dist }} image
         id: cache-pbuilder-image
