@@ -70,13 +70,23 @@ jobs:
         run: |
           sudo apt-get install devscripts dput-ng -y
 
-          # Acquire the signing key
-          echo ${{secrets.GPG_PASSWORD}} | gpg-preset-passphrase
-          echo ${{secrets.GPG_PRIVATE_KEY}} | gpg --import
-          KEYID=$(gpg --with-colons --list-keys | grep -m1 '^fpr:' | tr -d [fpr:])
+          echo "Setup a temporary GNUPG home directory"
+          export GNUPGHOME=$(pwd)/GPGDATA
+          mkdir -m700 $GNUPGHOME
+          echo "allow-preset-passphrase" >> $GNUPGHOME/gpg-agent.conf
+          gpgconf --kill gpg-agent
 
-          # Upload release assets
+          echo "Acquire the signing key"
+          echo "${{secrets.GPG_PRIVATE_KEY}}" | gpg --import --pinentry-mode loopback --passphrase "${{secrets.GPG_PASSWORD}}"
+          KEYID=$(gpg --with-colons --list-keys | grep -m1 '^fpr:' | tr -d [fpr:])
+          KEYGRIP=$(gpg --with-colons --with-keygrip --list-keys | grep -m1 '^grp:' | tr -d [grp:])
+
+          echo "Preset the GPG passphrase"
+          echo ${{secrets.GPG_PASSWORD}} | /lib/gnupg2/gpg-preset-passphrase --preset $KEYGRIP
+
+          echo "Upload release assets"
           for dist in $(find . -type d -name '*-prod'); do
+            echo "Uploading $dist"
             cd $dist
             ln -s ../mozillavpn_*.orig.tar.gz
             debsign -k $KEYID mozillavpn_*_source.changes
