@@ -53,7 +53,11 @@ jobs:
         env:
           GNUPGHOME: ${{ github.workspace }}/gnupg-data
         run: |
+          echo "Debug: listing keys..."
+          gpg --with-colons --list-keys
           KEYID=$(gpg --with-colons --list-keys | grep -m1 '^fpr:' | tr -d [fpr:])
+          echo "KEYID is $KEYID"
+
           ./scripts/linux_script.sh --sign-key $KEYID --source
 
       - name: Uploading Sources
@@ -72,3 +76,13 @@ jobs:
             debsign -k $KEYID $dist/mozillavpn_*_source.changes
             dput $PPA_URL $dist/mozillavpn_*_source.changes
           done
+      
+      - name: Cleanup GPG Signing Key
+        shell: bash
+        continue-on-error: true
+        env:
+          GNUPGHOME: ${{ github.workspace }}/gnupg-data
+        run: |
+          gpgconf --kill gpg-agent
+          rm -rf $GNUPGHOME
+        
