@@ -3,10 +3,12 @@ on:
   push:
     branches:
       - 'releases/**'
+    tags:
+      - 'v[0-9]+.*'
 
 jobs:
   ppa-release-candidate:
-    name: Source Bundle
+    name: PPA Releases
     runs-on: ubuntu-latest
     environment: PPA Automation
     steps:
@@ -15,13 +17,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate release candidate version
+      - name: Generate release version
         shell: bash
         env:
           GITREF: ${{github.ref}}
         run: |
-          BUILDREV="~rc$(git rev-list --count --first-parent origin/main..HEAD)"
-          VERSION=$(echo $GITREF | cut -d'/' -f4)
+          if [[ "$GITREF" =~ ^refs/heads/releases/([0-9][^/]*) ]]; then
+            BUILDREV="~rc$(git rev-list --count --first-parent origin/main..HEAD)"
+            VERSION=${BASH_REMATCH[1]}
+          elif [[ "$GITREF" =~ ^refs/tags/v([0-9][^/*) ]]; then
+            BUILDREV=""
+            VERSION=${BASH_REMATCH[1]}
+          else
+            echo "Refusing to publish ref: $GITREF"
+            exit 1
+          fi
           sed -i "s/:VERSION.*/:VERSION = ${VERSION}${BUILDREV}/" version.pri
 
       - name: Install dependencies
@@ -50,7 +60,7 @@ jobs:
           echo "$GPG_PASSWORD" | /lib/gnupg2/gpg-preset-passphrase --preset $KEYGRIP
           ./scripts/linux_script.sh --sign-key $KEYID --source
 
-      - name: Uploading Sources
+      - name: Uploading sources
         uses: actions/upload-artifact@v2
         with:
             name: Sources
