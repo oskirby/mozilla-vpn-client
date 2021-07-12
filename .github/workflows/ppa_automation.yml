@@ -37,8 +37,8 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSWORD: ${{ secrets.GPG_PASSWORD }}
+          GNUPGHOME: ${{ runner.temp }}/gnupg-data
         run: |
-          export GNUPGHOME="${{ runner.temp }}/gnupg-data"
           mkdir -m700 $GNUPGHOME
           echo "allow-preset-passphrase" > $GNUPGHOME/gpg-agent.conf
           gpgconf --kill gpg-agent
@@ -56,10 +56,11 @@ jobs:
             name: Sources
             path: .tmp
 
-      - name: Push to PPA
+      - name: Push to Launchpad PPA
         shell: bash
         env:
           PPA_URL: ppa:okirby/mozilla-vpn-test
+          GNUPGHOME: ${{ runner.temp }}/gnupg-data
         run: |
           for dist in $(find .tmp -type d -name '*-prod'); do
             (cd $dist && ln -s ../mozillavpn_*.orig.tar.gz)
