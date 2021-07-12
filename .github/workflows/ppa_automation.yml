@@ -32,34 +32,29 @@ jobs:
           pip3 install pyhumps
           pip3 install pyyaml
 
-      - name: Acquire GPG Signing Key
+      - name: Build source bundle
         shell: bash
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSWORD: ${{ secrets.GPG_PASSWORD }}
           GNUPGHOME: ${{ runner.temp }}/gnupg-data
         run: |
+          export GNUPGHOME="${{runner.temp}}/gnupg-data"
           mkdir -m700 $GNUPGHOME
           echo "allow-preset-passphrase" > $GNUPGHOME/gpg-agent.conf
           gpgconf --kill gpg-agent
 
-          # Install the GPG signing key
           echo "$GPG_PRIVATE_KEY" | gpg --import --pinentry-mode loopback --passphrase "$GPG_PASSWORD"
+          KEYID=$(gpg --with-colons --list-keys | grep -m1 '^fpr:' | tr -d [fpr:])
+          KEYGRIP=$(gpg --with-colons --with-keygrip --list-keys | grep -m1 '^grp:' | tr -d [grp:])
 
-      - name: Build source bundle
-        shell: bash
-        env:
-          GNUPGHOME: ${{ runner.temp }}/gnupg-data
-        run: |
           echo "Debug: listing keys..."
           gpg --with-colons --list-keys
-          KEYID=$(gpg --with-colons --list-keys | grep -m1 '^fpr:' | tr -d [fpr:])
           echo "KEYID is $KEYID"
-          KEYGRIP=$(gpg --with-colons --with-keygrip --list-keys | grep -m1 '^grp:' | tr -d [grp:])
           echo "KEYGRIP is $KEYGRIP"
-          echo "$GPG_PASSWORD" | /lib/gnupg2/gpg-preset-passphrase --preset $KEYGRIP
 
-          ./scripts/linux_script.sh --sign-key "$KEYID" --source
+          echo "$GPG_PASSWORD" | /lib/gnupg2/gpg-preset-passphrase --preset $KEYGRIP
+          ./scripts/linux_script.sh --sign-key $KEYID --source
 
       - name: Uploading Sources
         uses: actions/upload-artifact@v2
