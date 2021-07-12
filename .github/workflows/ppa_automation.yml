@@ -1,4 +1,5 @@
 name: PPA Automated Releases
+environment: PPA Automation
 on:
   push:
     branches:
@@ -30,10 +31,30 @@ jobs:
           pip3 install "glean_parser==3.5"
           pip3 install pyhumps
           pip3 install pyyaml
+        
+      - name: Acquire GPG Signing Key
+        shell: bash
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSWORD: ${{ secrets.GPG_PASSWORD }}
+          GNUPGHOME: ${{ github.workspace }}/gnupg-data
+        run: |
+          mkdir -m700 $GNUPGHOME
+          echo "allow-preset-passphrase" >> $GNUPGHOME/gpg-agent.conf
+          gpgconf --kill gpg-agent
+
+          # Install the GPG signing key
+          echo "$GPG_PRIVATE_KEY" | gpg --import --pinentry-mode loopback --passphrase "$GPG_PASSWORD"
+          KEYGRIP=$(gpg --with-colons --with-keygrip --list-keys | grep -m1 '^grp:' | tr -d [grp:])
+          echo "$GPG_PASSWORD" | /lib/gnupg2/gpg-preset-passphrase --preset $KEYGRIP
 
       - name: Build source bundle
         shell: bash
-        run: ./scripts/linux_script.sh --source
+        env:
+          GNUPGHOME: ${{ github.workspace }}/gnupg-data
+        run: |
+          KEYID=$(gpg --with-colons --list-keys | grep -m1 '^fpr:' | tr -d [fpr:])
+          ./scripts/linux_script.sh --sign-key $KEYID --source
 
       - name: Uploading Sources
         uses: actions/upload-artifact@v2
@@ -44,25 +65,8 @@ jobs:
       - name: Push to PPA
         shell: bash
         env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PASSWORD: ${{ secrets.GPG_PASSWORD }}
           PPA_URL: ppa:okirby/mozilla-vpn-test
         run: |
-          # Setup a temporary GNUPG home directory
-          export GNUPGHOME=$(pwd)/GPGDATA
-          mkdir -m700 $GNUPGHOME
-          echo "allow-preset-passphrase" >> $GNUPGHOME/gpg-agent.conf
-          gpgconf --kill gpg-agent
-
-          # Acquire the signing key
-          echo "$GPG_PRIVATE_KEY" | gpg --import --pinentry-mode loopback --passphrase "$GPG_PASSWORD"
-          KEYID=$(gpg --with-colons --list-keys | grep -m1 '^fpr:' | tr -d [fpr:])
-          KEYGRIP=$(gpg --with-colons --with-keygrip --list-keys | grep -m1 '^grp:' | tr -d [grp:])
-
-          # Preset the GPG passphrase
-          echo "$GPG_PASSWORD" | /lib/gnupg2/gpg-preset-passphrase --preset $KEYGRIP
-
-          # Upload production release assets
           for dist in $(find .tmp -type d -name '*-prod'); do
             (cd $dist && ln -s ../mozillavpn_*.orig.tar.gz)
             debsign -k $KEYID $dist/mozillavpn_*_source.changes
