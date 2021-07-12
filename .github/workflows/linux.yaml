@@ -54,46 +54,6 @@ jobs:
             name: Sources
             path: .tmp
   
-  ppa-release-upload:
-    name: PPA Release Candidate
-    needs: source-bundle
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/heads/releases/')
-    steps:
-      - name: Download Source Package
-        uses: actions/download-artifact@v2
-        with:
-            name: Sources
-      
-      - name: Upload Release Assets
-        shell: bash
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PASSWORD: ${{ secrets.GPG_PASSWORD }}
-        run: |
-          sudo apt-get install devscripts dput-ng -y
-
-          # Setup a temporary GNUPG home directory
-          export GNUPGHOME=$(pwd)/GPGDATA
-          mkdir -m700 $GNUPGHOME
-          echo "allow-preset-passphrase" >> $GNUPGHOME/gpg-agent.conf
-          gpgconf --kill gpg-agent
-
-          # Acquire the signing key
-          echo "$GPG_PRIVATE_KEY" | gpg --import --pinentry-mode loopback --passphrase "$GPG_PASSWORD"
-          KEYID=$(gpg --with-colons --list-keys | grep -m1 '^fpr:' | tr -d [fpr:])
-          KEYGRIP=$(gpg --with-colons --with-keygrip --list-keys | grep -m1 '^grp:' | tr -d [grp:])
-
-          # Preset the GPG passphrase
-          echo "$GPG_PASSWORD" | /lib/gnupg2/gpg-preset-passphrase --preset $KEYGRIP
-
-          # Upload production release assets
-          for dist in $(find . -type d -name '*-prod'); do
-            (cd $dist && ln -s ../mozillavpn_*.orig.tar.gz)
-            debsign -k $KEYID $dist/mozillavpn_*_source.changes
-            dput ppa:okirby/mozilla-vpn-test $dist/mozillavpn_*_source.changes
-          done
-
   focal-staging:
     name: Focal Staging
     needs: source-bundle
