@@ -25,7 +25,7 @@ jobs:
           if [[ "$GITREF" =~ ^refs/heads/releases/([0-9][^/]*) ]]; then
             BUILDREV="~rc$(git rev-list --count --first-parent origin/main..HEAD)"
             VERSION=${BASH_REMATCH[1]}
-          elif [[ "$GITREF" =~ ^refs/tags/v([0-9][^/*) ]]; then
+          elif [[ "$GITREF" =~ ^refs/tags/v([0-9][^/]*) ]]; then
             BUILDREV=""
             VERSION=${BASH_REMATCH[1]}
           else
