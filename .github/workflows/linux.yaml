@@ -34,7 +34,7 @@ jobs:
           fi
 
           # Force the upstream package version
-          sed -i "s/:VERSION*/:VERSION = ${VERSION}${BUILDREV}/" version.pri
+          sed -i "s/:VERSION.*/:VERSION = ${VERSION}${BUILDREV}/" version.pri
 
       - name: Install source dependencies
         shell: bash
