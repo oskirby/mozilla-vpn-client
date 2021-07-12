@@ -53,6 +53,27 @@ jobs:
         with:
             name: Sources
             path: .tmp
+  
+  ppa-release-upload:
+    name: PPA Release Candidate
+    needs: source-bundle
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/releases/')
+    steps:
+      - name: Download Source Package
+        uses: actions/download-artifact@v2
+        with:
+            name: Sources
+      
+      - name: Upload Release Assets
+        shell: bash
+        run: |
+          for dist in $(find . -type d -name '*-prod'); do
+            cd $dist
+            ln -s ../mozillavpn_*.orig.tar.gz
+            debsign mozillavpn_*_source.changes
+            dput ppa:okirby/mozilla-vpn-test
+          done
 
   focal-staging:
     name: Focal Staging
