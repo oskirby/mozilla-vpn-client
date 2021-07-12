@@ -148,6 +148,8 @@ jobs:
         run: |
           export PATH=.:$(npm bin):$PATH
           export HEADLESS=yes
+          touch ${{matrix.test}}-logs.txt
+          ln -sf $(pwd)/test-logs.txt /tmp/VPN_LOG.txt
           xvfb-run -a ./scripts/test_function.sh ./src/mozillavpn ${{matrix.test}}
         env:
           ACCOUNT_EMAIL: ${{ secrets.ACCOUNT_EMAIL }}
@@ -158,7 +160,7 @@ jobs:
         if: steps.runTests.outcome != 'success'
         with:
           name: Logs (${{matrix.test}})
-          path: /tmp/VPN_LOG.txt
+          path: test-logs.txt
 
       - name: Uploading screenshots
         uses: actions/upload-artifact@v1
