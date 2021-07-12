@@ -69,10 +69,17 @@ jobs:
         shell: bash
         run: |
           sudo apt-get install devscripts dput-ng -y
+
+          # Acquire the signing key
+          echo ${{secrets.GPG_PASSWORD}} | gpg-preset-passphrase
+          echo ${{secrets.GPG_PRIVATE_KEY}} | gpg --import
+          KEYID=$(gpg --with-colons --list-keys | grep -m1 '^fpr:' | tr -d [fpr:])
+
+          # Upload release assets
           for dist in $(find . -type d -name '*-prod'); do
             cd $dist
             ln -s ../mozillavpn_*.orig.tar.gz
-            debsign mozillavpn_*_source.changes
+            debsign -k $KEYID mozillavpn_*_source.changes
             dput ppa:okirby/mozilla-vpn-test
           done
 
