@@ -87,10 +87,9 @@ jobs:
           echo "Upload release assets"
           for dist in $(find . -type d -name '*-prod'); do
             echo "Uploading $dist"
-            cd $dist
-            ln -s ../mozillavpn_*.orig.tar.gz
-            debsign -k $KEYID mozillavpn_*_source.changes
-            dput ppa:okirby/mozilla-vpn-test
+            (cd $dist && ln -s ../mozillavpn_*.orig.tar.gz)
+            debsign -k $KEYID $dist/mozillavpn_*_source.changes
+            dput ppa:okirby/mozilla-vpn-test $dist/mozillavpn_*_source.changes
           done
 
   focal-staging:
