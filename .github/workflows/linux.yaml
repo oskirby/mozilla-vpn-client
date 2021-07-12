@@ -22,7 +22,7 @@ jobs:
         env:
           GITREF: ${{github.ref}}
         run: |
-          VERSION=$(grep ':VERSION' | cut -d= -f2 | tr -d '[:space:]')
+          VERSION=$(grep ':VERSION' version.pri | cut -d= -f2 | tr -d '[:space:]')
           if [[ "$GITREF" =~ ^refs/pull/([0-9]+)/merge ]]; then
             BUILDREV="~pr${BASH_REMATCH[1]}"
           elif [[ "$GITREF" =~ ^refs/heads/releases/([0-9][^/]*) ]]; then
