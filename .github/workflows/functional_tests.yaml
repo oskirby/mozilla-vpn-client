@@ -117,10 +117,6 @@ jobs:
           path: build/
           key: ${{ github.sha }}
 
-      - name: Check Build
-        shell: bash
-        run: ./build/mozillavpn -v
-
       - name: Install Dependencies
         run: |
           sudo dpkg -i build/archive/*.deb
@@ -129,6 +125,10 @@ jobs:
           npm install selenium-webdriver
           npm install mocha
           npm install websocket
+
+      - name: Check Build
+        shell: bash
+        run: ./build/mozillavpn -v
 
       - name: Install geckodriver
         run: |
