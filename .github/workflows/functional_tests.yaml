@@ -130,16 +130,10 @@ jobs:
         shell: bash
         run: ./build/mozillavpn -v
 
-      - name: Install geckodriver
-        run: |
-          sudo apt install wget -y
-          wget https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz -O geckodriver.tar.gz
-          tar xvf geckodriver.tar.gz
-
       - name: Running ${{matrix.test.name}} tests
         id: runTests
         run: |
-          export PATH=.:$(npm bin):$PATH
+          export PATH=$GECKOWEBDRIVER:$(npm bin):$PATH
           export HEADLESS=yes
           xvfb-run -a ./scripts/test_function.sh ./build/mozillavpn ${{matrix.test.path}}
         env:
