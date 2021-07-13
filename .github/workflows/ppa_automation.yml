@@ -43,7 +43,7 @@ jobs:
           echo "allow-preset-passphrase" > $GNUPGHOME/gpg-agent.conf
           gpgconf --kill gpg-agent
 
-          echo "$GPG_PRIVATE_KEY" | gpg --import --pinentry-mode loopback --passphrase "$GPG_PASSWORD"
+          echo "$GPG_PRIVATE_KEY" | gpg --import --batch
           KEYID=$(gpg --with-colons --list-keys | grep -m1 '^fpr:' | tr -d [fpr:])
           KEYGRIP=$(gpg --with-colons --with-keygrip --list-keys | grep -m1 '^grp:' | tr -d [grp:])
 
