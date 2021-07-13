@@ -11,6 +11,7 @@
 #include "networkrequest.h"
 
 #include <QRandomGenerator>
+#include <QProcessEnvironment>
 
 namespace {
 
@@ -18,6 +19,14 @@ Logger logger(LOG_MAIN, "TaskAddDevice");
 
 QByteArray generatePrivateKey() {
   QByteArray key;
+
+#ifdef MVPN_DUMMY
+  QProcessEnvironment pe = QProcessEnvironment::systemEnvironment();
+  if (pe.contains("MVPN_DUMMY_PRIVATE_KEY")) {
+    QString dummyKey = pe.value("MVPN_DUMMY_PRIVATE_KEY");
+    return dummyKey.toUtf8();
+  }
+#endif
 
   QRandomGenerator* generator = QRandomGenerator::system();
   Q_ASSERT(generator);

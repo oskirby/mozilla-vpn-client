@@ -103,7 +103,6 @@ jobs:
     timeout-minutes: 60
     strategy:
       fail-fast: false # Don't cancel other jobs if a test fails
-      max-parallel: 1 #  To avoid max-device limit
       matrix:
         test: ${{ fromJson(needs.test_list.outputs.matrix) }}
     steps:
@@ -135,6 +134,7 @@ jobs:
         run: |
           export PATH=$GECKOWEBDRIVER:$(npm bin):$PATH
           export HEADLESS=yes
+          export MVPN_DUMMY_PRIVATE_KEY=$(echo "$ACCOUNT_PASSWORD" | sha256sum | awk '{print $1}' | xxd -r -p | base64)
           xvfb-run -a ./scripts/test_function.sh ./build/mozillavpn ${{matrix.test.path}}
         env:
           ACCOUNT_EMAIL: ${{ secrets.ACCOUNT_EMAIL }}
