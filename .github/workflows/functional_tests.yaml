@@ -69,7 +69,7 @@ jobs:
                git qt515base qt515tools qt515svg qt515networkauth-no-lgpl qt515charts-no-lgpl \
                libgl-dev libpolkit-gobject-1-dev qt515quickcontrols2 qt515imageformats \
                qt515graphicaleffects qt515websockets qt515declarative
-
+          sudo chown -R $USER:$USER build/archive
 
       - name: Compile
         shell: bash
@@ -87,6 +87,7 @@ jobs:
 
           qmake CONFIG+=DUMMY QMAKE_CXX=clang++ QMAKE_LINK=clang++ CONFIG+=debug CONFIG+=inspector QT+=svg
           make -j8
+          cp src/mozillavpn build/
       
       - name: Check Build
         shell: bash
