@@ -37,6 +37,8 @@ QString Device::currentDeviceName() {
       AndroidUtils::GetDeviceName();
 #elif MVPN_WASM
       "WASM";
+#elif MVPN_DUMMY
+      "Dummy Client";
 #else
       QSysInfo::machineHostName() + " " + QSysInfo::productType() + " " +
       QSysInfo::productVersion();
