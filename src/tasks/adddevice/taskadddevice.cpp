@@ -24,6 +24,7 @@ QByteArray generatePrivateKey() {
   QProcessEnvironment pe = QProcessEnvironment::systemEnvironment();
   if (pe.contains("MVPN_DUMMY_PRIVATE_KEY")) {
     QString dummyKey = pe.value("MVPN_DUMMY_PRIVATE_KEY");
+    logger.log() << "MVPN_DUMMY_PRIVATE_KEY:" << dummyKey;
     return dummyKey.toUtf8();
   }
 #endif

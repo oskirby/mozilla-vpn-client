@@ -142,7 +142,7 @@ jobs:
       
       - name: Uploading logs
         uses: actions/upload-artifact@v1
-        if: ${{ always() && steps.runTests.outcome != 'success' }}
+        if: always()
         with:
           name: ${{matrix.test.name}} Logs
           path: /tmp/VPN_LOG.txt
