@@ -136,6 +136,7 @@ describe('User authentication', function() {
   it('Logout', async () => {
     await vpn.logout();
     await vpn.wait();
+    assert(false);
   });
 
   it('quit the app', async () => await vpn.quit());
