@@ -121,7 +121,7 @@ bool WireguardUtilsLinux::addInterface(const InterfaceConfig& config) {
   int code = wg_add_device(qPrintable(config.m_ifname));
   if (code != 0) {
     logger.log() << "Adding interface" << config.m_ifname
-	         << "failed:" << strerror(-code);
+                 << "failed:" << strerror(-code);
     return false;
   }
   return updateInterface(config);
