@@ -40,6 +40,12 @@ jobs:
           fi
           sed -i "s/:VERSION.*/:VERSION = ${VERSION}${BUILDREV}/" version.pri
           echo "DEBUG: Preparing version ${VERSION} rev: ${BUILDREV}"
+      
+      - name: Dummy Step
+        if: ${{ startsWith(github.ref, 'refs/heads/releases/') || startsWith(github.ref, 'refs/tags/v') }}
+        shell: bash
+        run: |
+          echo "DEBUG: boolean matched for $GITREF"
 
       - name: Install dependencies
         shell: bash
